@@ -1,4 +1,5 @@
 // Config
+final int SPEED = 1;
 final int S = 20; // 22x22 @ 24px = 1080x1080
 final int W = 22;
 final int H = 22;
@@ -145,11 +146,13 @@ void draw() {
 
 
   // keep running until the stack is empty
-  if( stack.size() > 0 ){
-    update();
-  }else{
-    println("Done");
-    noLoop();
+  for( int i = 0; i < min( SPEED, stack.size() ); i++ ){
+    if( stack.size() > 0 ){
+      update();
+    }else{
+      println("Done");
+      noLoop();
+    }
   }
 
 }
