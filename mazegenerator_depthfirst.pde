@@ -1,37 +1,46 @@
 // Config
-final int S = 24; // 22x22 @ 24px = 1080x1080
+final int S = 20; // 22x22 @ 24px = 1080x1080
 final int W = 22;
 final int H = 22;
 final color HEAD_CLR  = color(255,0,0);
 final color STACK_CLR = color(102);
 final color FILL_CLR  = color(255);
-final Boolean RECORD  = true; // set to true to save out frames
+final Boolean RECORD  = false; // set to true to save out frames
 final int START = 0;
 final int GOAL  = W*H-1;
 
 // Varaibles
 Vertex[] graph = new Vertex[W * H];
-int[]    edges = new int[W * H];
 IntList  stack = new IntList();
 int finalFrame = -1;
 
 
 // Vertex class for each square
 class Vertex {
-  int x, y;
-  IntList neighbors = new IntList();
+  int x, y; // position of the vertex  
+  int edge; // edge, if any this node is best connected from
+  IntList neighbors = new IntList(); // list of neighbors
+
   Vertex( int _x, int _y ){
+    // set position
     x = _x;
     y = _y;
+    edge = -1;
+
+    // find valid neighbors
     if( y > 0 )   neighbors.append((y-1) * W + x); // north
     if( x < W-1 ) neighbors.append(y * W + (x+1)); // east
     if( y < H-1 ) neighbors.append((y+1) * W + x); // south
     if( x > 0 )   neighbors.append(y * W + (x-1)); // west
+
+    // randomize neighbors
     neighbors.shuffle();
   }
+
   void show() {
     rect( S + x * S * 2, S + y * S * 2, S, S );
   }
+  
 } 
 
 
@@ -52,12 +61,11 @@ void setup() {
     for( int y = 0; y < H; y++ ){
       int v = y*W+x;
       graph[v] = new Vertex(x,y);
-      edges[v] = -1;
     }
   }
 
   // Start with the first point
-  edges[START] = START;
+  graph[START].edge = START;
   stack.append(START);
 
 }
@@ -70,14 +78,14 @@ void draw() {
   // draw the maze
   for( int thisVertex = 0; thisVertex < W * H; thisVertex++ ){
     
-    if( edges[thisVertex] > -1 ){
+    if( graph[thisVertex].edge > -1 ){
       if( stack.hasValue( thisVertex ) ){
         fill( STACK_CLR ); // still in the stack
       }else{
         fill( FILL_CLR ); // fully backtracked
       }
       Vertex v1 = graph[thisVertex];
-      Vertex v2 = graph[edges[thisVertex]];
+      Vertex v2 = graph[v1.edge];
       // draw an edge between both vertexes
       int x = S + (S * (v1.x + v2.x));
       int y = S + (S * (v1.y + v2.y));
@@ -101,7 +109,7 @@ void draw() {
     // get all open neighbors of this vertex
     IntList openNeighbors = new IntList();
     for( int n = 0; n < graph[currentIndex].neighbors.size(); n++ ){
-      if( edges[graph[currentIndex].neighbors.get(n)] == -1 ){
+      if( graph[graph[currentIndex].neighbors.get(n)].edge == -1 ){
         int neighborIndex = graph[currentIndex].neighbors.get(n);
         openNeighbors.appendUnique( neighborIndex );
       }
@@ -119,7 +127,7 @@ void draw() {
       stack.append( randomNeighborIndex );
       
       // mark the neighbor as coming from this vertex
-      edges[ randomNeighborIndex ] = currentIndex;
+      graph[ randomNeighborIndex ].edge = currentIndex;
 
     }
 
