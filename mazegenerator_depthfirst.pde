@@ -1,5 +1,9 @@
 Graph g;
 
+int index( int x, int y ){
+  return y * W + x;
+}
+
 void settings() {
   int wi = S + (2 * S * W);
   int hi = S + (2 * S * H);
@@ -15,10 +19,10 @@ void setup() {
     for( int y = 0; y < H; y++ ){
       int nodeIndex = y*W+x;
       g.nodes[nodeIndex] = new Vertex(x,y);
-      if( y > 0 )   g.nodes[nodeIndex].addNeighbor((y-1) * W + x); // north
-      if( x < W-1 ) g.nodes[nodeIndex].addNeighbor(y * W + (x+1)); // east
-      if( y < H-1 ) g.nodes[nodeIndex].addNeighbor((y+1) * W + x); // south
-      if( x > 0 )   g.nodes[nodeIndex].addNeighbor(y * W + (x-1)); // west
+      if( y > 0 )   g.nodes[nodeIndex].addNeighbor( index(x, y-1) ); // north
+      if( x < W-1 ) g.nodes[nodeIndex].addNeighbor( index(x+1, y) ); // east
+      if( y < H-1 ) g.nodes[nodeIndex].addNeighbor( index(x, y+1) ); // south
+      if( x > 0 )   g.nodes[nodeIndex].addNeighbor( index(x-1, y) ); // west
       g.nodes[nodeIndex].neighbors.shuffle();
     }
   }
@@ -26,7 +30,7 @@ void setup() {
   // Start with the first point
   g.nodes[ g.stackTopIndex ].edgeIndex = g.stackTopIndex;
   g.stack.append( g.stackTopIndex );
-
+  waterMark(W-5,H-5);
   background(0);
 }
 
@@ -34,10 +38,39 @@ void setup() {
 void draw() {
   g.update();
   g.render();
-
-  // save this frame if recording is set
   if( RECORD ) saveFrame("output/frame-####.png");
+  if( g.finalFrame <= frameCount ){
+    noLoop();
+    println("Done");
+  }
+}
 
-  // keep running until the stack is empty
-  if( g.stack.size() == 0 ) noLoop();
+
+void waterMark( int x, int y ) {
+  // places a PDWTU watermark in the maze
+  g.nodes[ index( x+2, y+2 ) ].edgeIndex = index( x+3, y+2 );
+  g.nodes[ index( x+3, y+2 ) ].edgeIndex = index( x+4, y+2 );
+  g.nodes[ index( x+4, y+2 ) ].edgeIndex = index( x+3, y+2 );
+  g.nodes[ index( x+3, y+3 ) ].edgeIndex = index( x+3, y+2 );
+  g.nodes[ index( x+2, y+3 ) ].edgeIndex = index( x+2, y+4 );
+  g.nodes[ index( x+2, y+4 ) ].edgeIndex = index( x+3, y+4 );
+  g.nodes[ index( x+3, y+4 ) ].edgeIndex = index( x+4, y+4 );
+  g.nodes[ index( x+4, y+4 ) ].edgeIndex = index( x+4, y+3 );
+  g.nodes[ index( x+4, y+3 ) ].edgeIndex = index( x+4, y+4 );
+  g.nodes[ index( x+2, y+0 ) ].edgeIndex = index( x+2, y+1 );
+  g.nodes[ index( x+2, y+1 ) ].edgeIndex = index( x+3, y+1 );
+  g.nodes[ index( x+3, y+1 ) ].edgeIndex = index( x+4, y+1 );
+  g.nodes[ index( x+4, y+1 ) ].edgeIndex = index( x+4, y+0 );
+  g.nodes[ index( x+4, y+0 ) ].edgeIndex = index( x+4, y+1 );
+  g.nodes[ index( x+3, y+0 ) ].edgeIndex = index( x+3, y+1 );
+  g.nodes[ index( x+0, y+2 ) ].edgeIndex = index( x+0, y+1 );
+  g.nodes[ index( x+0, y+1 ) ].edgeIndex = index( x+0, y+0 );
+  g.nodes[ index( x+0, y+0 ) ].edgeIndex = index( x+1, y+0 );
+  g.nodes[ index( x+1, y+0 ) ].edgeIndex = index( x+1, y+1 );
+  g.nodes[ index( x+1, y+1 ) ].edgeIndex = index( x+0, y+1 );
+  g.nodes[ index( x+1, y+2 ) ].edgeIndex = index( x+1, y+3 );
+  g.nodes[ index( x+1, y+3 ) ].edgeIndex = index( x+1, y+4 );
+  g.nodes[ index( x+1, y+4 ) ].edgeIndex = index( x+0, y+4 );
+  g.nodes[ index( x+0, y+4 ) ].edgeIndex = index( x+0, y+3 );
+  g.nodes[ index( x+0, y+3 ) ].edgeIndex = index( x+1, y+3 );
 }
